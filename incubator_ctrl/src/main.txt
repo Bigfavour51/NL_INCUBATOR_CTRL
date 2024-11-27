@@ -1,0 +1,153 @@
+#include <Arduino.h>
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+#include <ClosedCube_HDC1080.h>
+#include <HardwareTimer.h>
+
+#define timIntv 5    // How many seconds the timer should update the values.
+#define mill 1000000 // One million
+
+#define ON HIGH
+#define OFF LOW
+
+#define bulbsw PB5  // NO contact of active high relay
+#define exFansw PB4 // NO contact of active high relay
+#define fansSw PB3  // NO contact of active high relay
+#define MotorSw PA8 // control pin for the motor
+
+#define tempTh 37.8 // Temperature threshold
+#define humidTh 90  // Humidity threshold, not used.
+
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+ClosedCube_HDC1080 thSens;
+HardwareTimer *timer = new HardwareTimer(TIM2);
+double temp, humid;
+bool Tover, Hover;
+
+void timISR(void); // ISR to update the temperature and humidity values every timIntv seconds
+void MotorCtrl();
+
+void setup()
+{
+    pinMode(bulbsw, OUTPUT);
+    pinMode(exFansw, OUTPUT);
+    pinMode(fansSw, OUTPUT);
+    pinMode(MotorSw, OUTPUT);
+
+    digitalWrite(bulbsw, OFF);
+    digitalWrite(exFansw, OFF);
+    digitalWrite(fansSw, OFF);
+    digitalWrite(MotorSw, OFF);
+
+    temp = 0.0;
+    humid = 0.0;
+    Tover = false;
+    Hover = false;
+
+    thSens.begin(0x40);
+    thSens.setResolution(HDC1080_RESOLUTION_14BIT, HDC1080_RESOLUTION_14BIT);
+
+    analogWriteResolution(12);
+
+    // timer->setOverflow(timIntv * mill, MICROSEC_FORMAT);
+    // timer->attachInterrupt(timISR);
+    // timer->resume();
+
+    lcd.init();
+    lcd.backlight();
+    lcd.clear();
+
+    lcd.home();
+    lcd.print("*****  FPI ****");
+    lcd.setCursor(0, 1);
+    lcd.print("*** INCUBATOR **");
+    delay(3000);
+
+    lcd.clear();
+    lcd.home();
+    lcd.print("HEATER ON...");
+    digitalWrite(bulbsw, ON);
+    delay(2000);
+    lcd.setCursor(0, 1);
+    lcd.print("SPREAD FANS ON");
+    digitalWrite(fansSw, ON);
+    delay(2000);
+   
+}
+
+void loop()
+{
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("TEMP: ");
+    lcd.print(temp);
+    lcd.print(" C");
+    lcd.setCursor(0, 1);
+    lcd.print("HUMID: ");
+    lcd.print(humid);
+    lcd.print(" %");
+    delay(3000);
+
+    
+    timISR();
+
+    lcd.clear();
+    lcd.home();
+    lcd.print("*****  FPI ****");
+    lcd.setCursor(0, 1);
+    lcd.print("*** INCUBATOR **");
+    delay(2000);
+}
+
+void timISR()
+{
+    temp = thSens.readTemperature();
+    humid = thSens.readH();
+
+    Tover = (temp >= tempTh) ? true : false; // Returns true if the temperature measured is over the defined temperature threshold, tempTh
+
+    switch (Tover)
+    {
+    case (false):
+    {
+        digitalWrite(bulbsw, ON);
+        digitalWrite(exFansw, OFF);
+        lcd.clear();
+        lcd.home();
+        lcd.print("  Heater On  ");
+        lcd.setCursor(0, 1);
+        lcd.print("Spread Fan On");
+        delay(2000);
+        break;
+    }
+
+    case (true):
+    {
+        digitalWrite(bulbsw, OFF);
+        digitalWrite(exFansw, ON);
+        lcd.clear();
+        lcd.home();
+        lcd.print("Heater OFF");
+        lcd.setCursor(0, 1);
+        lcd.print(" Ext. Fan ON ");
+        delay(2000);
+        break;
+    }
+    }
+}
+
+void MotorCtrl()
+{
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("MOTOR ON : 1 MINS");
+    analogWrite(MotorSw, 1023);
+    delay(60000);
+
+    
+    lcd.clear();
+    lcd.home();
+    lcd.print("MOTOR OFF : 30 MINS");
+    analogWrite(MotorSw, 0);   
+    delay(1800000);
+}
