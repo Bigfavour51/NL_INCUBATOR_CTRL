@@ -1,3 +1,12 @@
+//////////////////////////////////////////////////////////////////////////////////////////
+//*FILE NAME:       nl_inc_ctrl.cpp
+//*FILE DESC:      Main executable source file
+//*FILE VERSION:    0.1.1
+//*FILE AUTHOR:     Aina Favour Olalekan (Bigfavour)
+//*LAST MODIFIED:   Monday, 19 August, 2024
+//*LICENSE:         GNU LGPL v2.1
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 #include <Arduino.h>
 #include <nl_inc_ctrl.h>
 

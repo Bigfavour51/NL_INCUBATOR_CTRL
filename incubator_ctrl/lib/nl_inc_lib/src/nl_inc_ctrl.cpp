@@ -2,7 +2,7 @@
 //*FILE NAME:       nl_inc_ctrl.cpp
 //*FILE DESC:       Source file for incubator_ctrl library.
 //*FILE VERSION:    0.1.1
-//*FILE AUTHOR:     Chimaroke Okwara (chima-okwara)
+//*FILE AUTHOR:     Aina Favour Olalekan (Bigfavour)
 //*LAST MODIFIED:   Monday, 19 August, 2024
 //*LICENSE:         GNU LGPL v2.1
 ////////////////////////////////////////////////////////////////////////////////////////////////////
